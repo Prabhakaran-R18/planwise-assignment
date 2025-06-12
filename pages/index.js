@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [task, setTask] = useState("");
@@ -11,9 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     const savedHistory = localStorage.getItem("taskHistory");
-    if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
-    }
+    if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
 
   const handleSubmit = async () => {
@@ -21,25 +20,25 @@ export default function Home() {
       setError("Please enter a task first");
       return;
     }
-
     setError("");
     setLoading(true);
 
     try {
       const res = await axios.post("/api/ai", { task });
-      const suggestion = res.data.suggestion;
-      setSuggestion(suggestion);
+      setSuggestion(res.data.suggestion);
 
-      const newHistory = [...history, {
-        task,
-        suggestion,
-        timestamp: new Date().toISOString(),
-      }].slice(-5); // Keep only last 5
+      const newHistory = [
+        ...history,
+        {
+          task,
+          suggestion: res.data.suggestion,
+          timestamp: new Date().toISOString(),
+        },
+      ].slice(-5);
 
       setHistory(newHistory);
       localStorage.setItem("taskHistory", JSON.stringify(newHistory));
     } catch (err) {
-      console.error(err);
       setError("Failed to get suggestion. Please try again.");
     } finally {
       setLoading(false);
@@ -47,9 +46,7 @@ export default function Home() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && e.ctrlKey) {
-      handleSubmit();
-    }
+    if (e.key === "Enter" && e.ctrlKey) handleSubmit();
   };
 
   const clearHistory = () => {
@@ -60,7 +57,9 @@ export default function Home() {
   return (
     <div className={styles.main}>
       <header className={styles.header}>
-        <h1 className={styles.title}>🧠 PlanWise <span className={styles.subtitle}>Smart Task Planner</span></h1>
+        <h1 className={styles.title}>
+          🧠 PlanWise <span className={styles.subtitle}>Smart Task Planner</span>
+        </h1>
       </header>
 
       <main className={styles.container}>
@@ -69,11 +68,13 @@ export default function Home() {
             className={styles.textarea}
             value={task}
             onChange={(e) => setTask(e.target.value)}
-            onKeyDown={handleKeyPress}
+            onKeyPress={handleKeyPress}
             placeholder="Enter your task here... (Ctrl + Enter to submit)"
             rows={4}
           />
+
           {error && <div className={styles.error}>{error}</div>}
+
           <div className={styles.buttonRow}>
             <button
               className={styles.button}
@@ -95,7 +96,18 @@ export default function Home() {
         {suggestion && (
           <div className={styles.suggestionBox}>
             <h3 className={styles.suggestionTitle}>💡 Suggestion:</h3>
-            <p>{suggestion}</p>
+            <ReactMarkdown
+              components={{
+                ul: ({ node, ...props }) => (
+                  <ul style={{ paddingLeft: 20, marginBottom: 0 }} {...props} />
+                ),
+                li: ({ node, ...props }) => (
+                  <li style={{ marginBottom: 4 }} {...props} />
+                ),
+              }}
+            >
+              {suggestion}
+            </ReactMarkdown>
           </div>
         )}
 
@@ -103,14 +115,25 @@ export default function Home() {
           <div className={styles.historySection}>
             <div className={styles.historyHeader}>
               <h3>Previous Tasks</h3>
-              <button className={styles.clearButton} onClick={clearHistory}>
+              <button onClick={clearHistory} className={styles.clearButton}>
                 Clear History
               </button>
             </div>
             {history.map((item, index) => (
               <div key={index} className={styles.historyItem}>
                 <p className={styles.historyTask}>{item.task}</p>
-                <p className={styles.historySuggestion}>{item.suggestion}</p>
+                <ReactMarkdown
+                  components={{
+                    ul: ({ node, ...props }) => (
+                      <ul style={{ paddingLeft: 20, marginBottom: 0 }} {...props} />
+                    ),
+                    li: ({ node, ...props }) => (
+                      <li style={{ marginBottom: 4 }} {...props} />
+                    ),
+                  }}
+                >
+                  {item.suggestion}
+                </ReactMarkdown>
                 <small className={styles.timestamp}>
                   {new Date(item.timestamp).toLocaleString()}
                 </small>

@@ -71,6 +71,9 @@ Avoid markdown headers like # or ##. Output should be clean bullet points with s
     const data = await orRes.json();
     let suggestion = data.choices?.[0]?.message?.content || "No suggestion available.";
 
+    // Ensure bullet points are formatted for frontend markdown rendering
+    suggestion = suggestion.replace(/^•/gm, "-");
+
     return res.status(200).json({
       suggestion,
       metadata: {

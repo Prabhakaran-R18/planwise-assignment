@@ -47,7 +47,7 @@
 
 .textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #0070f3;
   box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
 }
 
@@ -63,7 +63,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color);
+  background-color: #0070f3;
   color: white;
   border: none;
   border-radius: 8px;
@@ -74,7 +74,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background-color: var(--primary-hover);
+  background-color: #0051b3;
   transform: translateY(-1px);
 }
 
@@ -85,19 +85,20 @@
 
 .suggestionBox {
   background: #f8fafc;
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid #0070f3;
   padding: 1.5rem;
   border-radius: 8px;
   margin-top: 2rem;
+  word-break: break-word;
 }
 
 .suggestionTitle {
-  color: var(--primary-color);
+  color: #0070f3;
   margin-bottom: 0.5rem;
 }
 
 .error {
-  color: var(--error-color);
+  color: #dc2626;
   background: #fee2e2;
   padding: 0.75rem;
   border-radius: 6px;
@@ -154,11 +155,6 @@
   margin-bottom: 0.5rem;
 }
 
-.historySuggestion {
-  color: #4a5568;
-  font-size: 0.95rem;
-}
-
 .timestamp {
   display: block;
   color: #718096;
@@ -166,20 +162,43 @@
   font-size: 0.875rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .container {
-    padding: 1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+  }
+  .main {
+    padding: 0.5rem;
   }
   .title {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+  .textarea {
+    font-size: 0.95rem;
+    min-height: 80px;
+    padding: 0.5rem;
   }
   .button {
     width: 100%;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+  }
+  .suggestionBox {
+    padding: 1rem;
+    font-size: 0.98rem;
+  }
+  .historySection {
+    padding-top: 0.5rem;
+  }
+  .historyItem {
+    padding: 0.5rem;
+    font-size: 0.95rem;
   }
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
