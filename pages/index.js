@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
+import { db, ref, set, remove, get } from "../firebase";
+import { v4 as uuidv4 } from "uuid"; // for unique task IDs
 
 export default function Home() {
   const [task, setTask] = useState("");
@@ -10,11 +12,24 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState("");
 
+  // Fetch history from Firebase on load
   useEffect(() => {
-    const savedHistory = localStorage.getItem("taskHistory");
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+    const fetchTasks = async () => {
+      try {
+        const snapshot = await get(ref(db, "tasks"));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const tasks = Object.values(data);
+          setHistory(tasks.slice(-5)); // latest 5 tasks
+        }
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      }
+    };
+    fetchTasks();
   }, []);
 
+  // Submit task and save to Firebase
   const handleSubmit = async () => {
     if (!task.trim()) {
       setError("Please enter a task first");
@@ -25,19 +40,22 @@ export default function Home() {
 
     try {
       const res = await axios.post("/api/ai", { task });
-      setSuggestion(res.data.suggestion);
+      const suggestionText = res.data.suggestion;
 
-      const newHistory = [
-        ...history,
-        {
-          task,
-          suggestion: res.data.suggestion,
-          timestamp: new Date().toISOString(),
-        },
-      ].slice(-5);
+      setSuggestion(suggestionText);
 
+      const taskId = uuidv4(); // unique ID for each task
+      const taskData = {
+        task,
+        suggestion: suggestionText,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Save to Firebase
+      await set(ref(db, "tasks/" + taskId), taskData);
+
+      const newHistory = [...history, taskData].slice(-5);
       setHistory(newHistory);
-      localStorage.setItem("taskHistory", JSON.stringify(newHistory));
     } catch (err) {
       setError("Failed to get suggestion. Please try again.");
     } finally {
@@ -49,9 +67,9 @@ export default function Home() {
     if (e.key === "Enter" && e.ctrlKey) handleSubmit();
   };
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
     setHistory([]);
-    localStorage.removeItem("taskHistory");
+    await remove(ref(db, "tasks"));
   };
 
   return (
